@@ -8,6 +8,15 @@ export const CARD_H = 1350;
 
 export const proxied = (url: string) => (url ? `/api/img?url=${encodeURIComponent(url)}` : "");
 
+/** "" for regular season, otherwise a short label for the card sub-line. */
+export function phaseOf(seasonType: string): string {
+  const t = seasonType.toLowerCase();
+  if (t.includes("pre")) return "Preseason";
+  if (t.includes("play-in") || t.includes("playin")) return "Play-In";
+  if (t.includes("post") || t.includes("playoff")) return "Playoffs";
+  return "";
+}
+
 export function cardData(player: PlayerInfo, game: GameEntry, baseline?: Baseline) {
   const parts = player.name.split(" ");
   const first = player.firstName || parts[0] || "";
@@ -41,6 +50,7 @@ export function cardData(player: PlayerInfo, game: GameEntry, baseline?: Baselin
     accent,
     accentInk: inkOn(accent),
     seasonType: game.seasonType,
+    phase: phaseOf(game.seasonType),
     stats: game.stats,
   };
 }

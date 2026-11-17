@@ -5,7 +5,15 @@ import { CARD_H, CARD_W } from "./cards/data";
 
 async function render(node: HTMLElement): Promise<Blob> {
   const { toBlob } = await import("html-to-image");
-  const blob = await toBlob(node, { width: CARD_W, height: CARD_H, pixelRatio: 1, style: { transform: "none" } });
+  // Make sure web fonts and every image are ready, or the export can miss them.
+  await document.fonts.ready;
+  await Promise.all(
+    [...node.querySelectorAll("img")].map((img) => (img.complete ? Promise.resolve() : img.decode().catch(() => undefined))),
+  );
+  const opts = { width: CARD_W, height: CARD_H, pixelRatio: 1, style: { transform: "none" } };
+  // Safari sometimes drops images on the first rasterisation; a throw-away warm-up pass fixes it.
+  if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) await toBlob(node, opts);
+  const blob = await toBlob(node, opts);
   if (!blob) throw new Error("render failed");
   return blob;
 }

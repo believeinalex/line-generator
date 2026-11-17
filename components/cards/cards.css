@@ -7,7 +7,7 @@
   (deep red / red / white / green / deep green), shown only on a small corner icon so the
   cards keep their team colors. Chevron shape carries the meaning; color reinforces it.
 */
-.cb, .cf {
+.cf {
   --t0: #c6241c;   /* awful  */
   --t1: #eba49d;   /* bad    */
   --t2: #ffffff;   /* average */
@@ -28,32 +28,6 @@
 .legend { display: flex; align-items: center; gap: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
 .legend-title { opacity: .6; margin-right: auto; }
 .legend-item { display: flex; align-items: center; gap: 10px; }
-
-/* ================= BROADCAST LIGHT ================= */
-.cb { width: 1080px; height: 1350px; background: #f1f0ea; color: var(--ink); font-family: "Barlow Condensed", sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-.cb-head { flex: none; height: 150px; background: #0c0c0c; color: #fff; display: flex; align-items: center; padding: 0 44px; gap: 36px; }
-.cb-final { font-weight: 900; font-size: 56px; letter-spacing: .12em; line-height: .95; }
-.cb-final small { display: block; font-weight: 600; font-size: 30px; letter-spacing: .1em; opacity: .65; text-transform: uppercase; }
-.cb-score { flex: 1; display: flex; justify-content: center; align-items: baseline; gap: 26px; font-weight: 800; font-size: 46px; letter-spacing: .08em; text-transform: uppercase; }
-.cb-score b { font-size: 84px; font-style: italic; font-weight: 900; }
-.cb-wl { width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 84px; font-style: italic; background: #fff; color: #0c0c0c; }
-.cb-wl.W { background: #35d07f; } .cb-wl.L { background: #ff5a4d; }
-.cb-hero { position: relative; height: 420px; flex: none; overflow: hidden; border-bottom: 10px solid var(--team); }
-.cb-disc { position: absolute; right: 20px; top: 20px; width: 520px; height: 520px; background: var(--team); transform: rotate(45deg) scale(.8); }
-.cb-hero img { position: absolute; right: 40px; bottom: 0; height: 405px; width: auto; max-width: none; }
-.cb-name { position: absolute; left: 44px; top: 30px; text-transform: uppercase; z-index: 2; }
-.cb-first { font-weight: 700; font-size: 54px; letter-spacing: .26em; }
-.cb-last { font-weight: 900; font-style: italic; line-height: .9; white-space: nowrap; letter-spacing: -.01em; }
-.cb-tags { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 520px; }
-.cb-tags span { background: #0c0c0c; color: #fff; padding: 4px 16px; font-weight: 700; font-size: 34px; letter-spacing: .08em; }
-.cb-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); border-bottom: 3px solid #0c0c0c; }
-.cb-cell { position: relative; border-right: 3px solid #0c0c0c; border-top: 3px solid #0c0c0c; padding: 12px 24px; }
-.cb-cell:nth-child(3n) { border-right: 0; }
-.cb-lab { font-weight: 800; font-size: 40px; letter-spacing: .14em; }
-.cb-sub { position: absolute; right: 24px; bottom: 40px; font-weight: 600; font-size: 38px; opacity: .6; }
-.cb-val { position: absolute; left: 22px; bottom: 22px; font-weight: 900; font-style: italic; font-size: 124px; line-height: 1; letter-spacing: -.03em; }
-.cb-legend { flex: none; height: 64px; padding: 0 44px; font-size: 26px; background: #0c0c0c; color: #fff; }
-.cb-legend .tchip { border-color: #fff; }
 
 /* ================= FLEER ================= */
 .cf { width: 1080px; height: 1350px; background: #e8e4da; padding: 44px; position: relative; overflow: hidden; font-family: "Barlow Condensed", sans-serif; color: var(--ink); }
@@ -79,3 +53,7 @@
 .cf-v { font-weight: 900; font-style: italic; font-size: 96px; line-height: 1; letter-spacing: -.02em; }
 .cf-legend { flex: none; height: 52px; margin-top: 14px; padding: 0 6px; font-size: 22px; }
 .cf-legend .tchip.sm { width: 28px; height: 28px; }
+.cf-dnp { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 5px solid #121212;
+  background: repeating-linear-gradient(135deg, #f1efe8 0 14px, #e6e3d9 14px 28px); gap: 12px; }
+.cf-dnp-big { font-weight: 900; font-style: italic; font-size: 110px; text-transform: uppercase; line-height: 1; }
+.cf-dnp-sub { font-weight: 700; font-size: 34px; letter-spacing: .06em; text-transform: uppercase; opacity: .65; padding: 0 40px; }

@@ -6,7 +6,7 @@ import type { GameEntry, PlayerInfo, PlayerSummary } from "@/lib/types";
 import { isoDay, shortDate } from "@/lib/stats";
 import { CardFrame } from "./CardFrame";
 import { ShareButtons } from "./ShareButtons";
-import { StatCard, VARIANTS } from "./StatCard";
+import { StatCard } from "./StatCard";
 
 interface Loaded {
   player: PlayerInfo;
@@ -21,13 +21,14 @@ export function LineApp() {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<Loaded | null>(null);
   const [gameId, setGameId] = useState("");
-  const [variant, setVariant] = useState(1);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
   const searchSeq = useRef(0);
+  const lastId = useRef("");
 
   const loadPlayer = useCallback(async (id: string, preferGame?: string) => {
+    lastId.current = id;
     setLoading(true);
     setErr("");
     try {
@@ -48,8 +49,6 @@ export function LineApp() {
   // initial state from URL
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
-    const v = Number(sp.get("v"));
-    if (VARIANTS.some((x) => x.id === v)) setVariant(v);
     const p = sp.get("player");
     if (p && /^\d+$/.test(p)) loadPlayer(p, sp.get("game") ?? undefined);
   }, [loadPlayer]);
@@ -60,9 +59,8 @@ export function LineApp() {
     const sp = new URLSearchParams();
     sp.set("player", data.player.id);
     if (gameId) sp.set("game", gameId);
-    if (variant !== 1) sp.set("v", String(variant));
     window.history.replaceState(null, "", `?${sp.toString()}`);
-  }, [data, gameId, variant]);
+  }, [data, gameId]);
 
   // debounced search
   useEffect(() => {
@@ -142,14 +140,24 @@ export function LineApp() {
       </div>
 
       <div className="stage">
-        {err && <div className="note err">{err}</div>}
+        {err && (
+          <div className="note err">
+            {err}{" "}
+            <button className="link" onClick={() => lastId.current && loadPlayer(lastId.current)}>
+              Retry
+            </button>
+          </div>
+        )}
+        {loading && !data && (
+          <div className="frame skeleton" aria-busy="true" style={{ aspectRatio: "1080 / 1350" }} />
+        )}
         {!data && !loading && !err && <div className="note">Pick a player to get their most recent game, ready to post.</div>}
         {data && !game && !loading && <div className="note">{data.player.name} hasn’t played a game this season.</div>}
 
         {data && game && (
           <>
             <CardFrame ref={cardRef} loading={loading}>
-              <StatCard player={data.player} game={game} variant={variant} baseline={data.baseline} />
+              <StatCard player={data.player} game={game} baseline={data.baseline} />
             </CardFrame>
 
             <ShareButtons
@@ -165,18 +173,8 @@ export function LineApp() {
                     {i === 0 ? "Latest" : shortDate(g.date)}
                     <small>
                       {g.home ? "vs" : "@"} {g.oppAbbr}
+                      {g.dnp ? " · DNP" : ""}
                     </small>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="panel">
-              <div className="row-label">Style</div>
-              <div className="chips">
-                {VARIANTS.map((v) => (
-                  <button key={v.id} className={`chip${v.id === variant ? " on" : ""}`} onClick={() => setVariant(v.id)}>
-                    {v.name}
                   </button>
                 ))}
               </div>

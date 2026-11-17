@@ -30,56 +30,7 @@ function Legend({ className }: { className: string }) {
   );
 }
 
-/* ---------- Broadcast Light ---------- */
-export function BroadcastLight({ d }: { d: CardData }) {
-  return (
-    <div className="cb" style={{ ["--team" as string]: d.accent, ["--teamInk" as string]: d.accentInk }}>
-      <div className="cb-head">
-        <div className="cb-final">
-          FINAL
-          <small>{d.dateLong}</small>
-        </div>
-        <div className="cb-score">
-          <span>{d.teamAbbr}</span>
-          <b>{d.score}</b>
-          <span>
-            {d.vsAt} {d.oppAbbr}
-          </span>
-        </div>
-        <div className={`cb-wl ${d.result}`}>{d.result || "–"}</div>
-      </div>
-      <div className="cb-hero">
-        <div className="cb-disc" />
-        {d.headshot && <img src={d.headshot} alt="" crossOrigin="anonymous" />}
-        <div className="cb-name">
-          <div className="cb-first">{d.first}</div>
-          <div className="cb-last" style={{ fontSize: fitSize(d.last.length, 560, 0.5, 150) }}>
-            {d.last}
-          </div>
-          <div className="cb-tags">
-            <span>{d.min} MIN</span>
-            {d.milestone && <span>{d.milestone}</span>}
-            <span>FP {d.fantasy}</span>
-          </div>
-        </div>
-      </div>
-      <div className="cb-grid">
-        {d.cats.map((c) => (
-          <div key={c.key} className="cb-cell">
-            <div className="cb-lab">{c.label}</div>
-            <Chip tier={c.tier} />
-            <div className="cb-val">{c.value}</div>
-            {c.sub && <div className="cb-sub">{c.sub}</div>}
-          </div>
-        ))}
-      </div>
-      <Legend className="cb-legend" />
-    </div>
-  );
-}
-
-/* ---------- Fleer ---------- */
-export function Fleer({ d }: { d: CardData }) {
+export function FleerCard({ d }: { d: CardData }) {
   const by = Object.fromEntries(d.cats.map((c) => [c.key, c]));
   const row1 = ["pts", "reb", "ast", "stl", "blk"].map((k) => by[k]);
   const row2 = ["tpm", "fg", "ft", "to"].map((k) => by[k]);
@@ -107,8 +58,15 @@ export function Fleer({ d }: { d: CardData }) {
           <span style={{ fontSize: fitSize(d.name.length, 780, 0.58, 78) }}>{d.name}</span>
         </div>
         <div className="cf-sub">
-          {d.dateLong} · {d.vsAt} {d.oppName} · <b className={d.result}>{d.result}</b> {d.score}
+          {d.dateLong}
+          {d.phase ? ` · ${d.phase}` : ""} · {d.vsAt} {d.oppName} · <b className={d.result}>{d.result}</b> {d.score}
         </div>
+        {d.dnp ? (
+          <div className="cf-dnp">
+            <div className="cf-dnp-big">Did not play</div>
+            <div className="cf-dnp-sub">No stats recorded for {d.name} in this game</div>
+          </div>
+        ) : (
         <div className="cf-table">
           <div className="cf-tr">{row1.map(cell)}</div>
           <div className="cf-tr">
@@ -123,7 +81,8 @@ export function Fleer({ d }: { d: CardData }) {
             </div>
           </div>
         </div>
-        <Legend className="cf-legend" />
+        )}
+        {!d.dnp && <Legend className="cf-legend" />}
       </div>
     </div>
   );

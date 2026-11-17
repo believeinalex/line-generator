@@ -77,3 +77,23 @@ describe("league baseline & z-scores", () => {
     expect(tierOf(zScores(l, b).ft)).toBe(2);
   });
 });
+
+import { phaseOf } from "@/components/cards/data";
+
+describe("DNP and season phase", () => {
+  it("flags a zero-minute, zero-attempt line as DNP", () => {
+    const g = structuredClone(gamelog) as typeof gamelog;
+    const cat = g.seasonTypes[0].categories[0];
+    cat.events[0].stats = ["0", "0-0", "0.0", "0-0", "0.0", "0-0", "0.0", "0", "0", "0", "0", "0", "0", "0"];
+    const games = parseGamelog(g);
+    const dnp = games.find((x) => x.eventId === cat.events[0].eventId)!;
+    expect(dnp.dnp).toBe(true);
+    expect(games.filter((x) => x.dnp)).toHaveLength(1);
+  });
+  it("labels non-regular-season games", () => {
+    expect(phaseOf("2026-27 Regular Season")).toBe("");
+    expect(phaseOf("2026-27 Preseason")).toBe("Preseason");
+    expect(phaseOf("2027 Postseason")).toBe("Playoffs");
+    expect(phaseOf("2027 Play-In")).toBe("Play-In");
+  });
+});
