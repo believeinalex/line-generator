@@ -106,14 +106,15 @@ export function buildBaseline(pages: Json[]): Baseline {
 
 /* ---------- z-scores & tiers ---------- */
 
-export type Tier = 0 | 1 | 2 | 3; // poor, average, good, elite
-export const TIER_NAMES = ["Poor", "Avg", "Good", "Elite"] as const;
+export type Tier = 0 | 1 | 2 | 3 | 4; // awful, bad, average, good, elite
+export const TIER_NAMES = ["Awful", "Bad", "Avg", "Good", "Elite"] as const;
 
 /** Thresholds in z (positive = better for the fantasy manager). */
 export function tierOf(z: number): Tier {
-  if (z >= 1.75) return 3;
-  if (z >= 0.75) return 2;
-  if (z >= -0.5) return 1;
+  if (z >= 1.5) return 4;
+  if (z >= 0.5) return 3;
+  if (z > -0.5) return 2;
+  if (z > -1.5) return 1;
   return 0;
 }
 

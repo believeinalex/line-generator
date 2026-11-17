@@ -3,30 +3,37 @@
 .card-root img { display: block; }
 
 /*
-  Performance tiers (vs league rotation players). Colors carry the tier, but so do
-  the hatch pattern on "poor", the 1-4 segment meter and (on the light card) the tier word.
+  Performance tiers vs league rotation players, Hashtag-style:
+  deep red / red / white / green / deep green. Color carries the tier, but so do the
+  hatch on the two red tiers, the 1-5 segment meter and (on the light card) the tier word.
 */
 .cb, .cf {
-  --t0: #ee8c85;   /* poor   */
-  --t1: transparent; /* average */
-  --t2: #8fd9ae;   /* good   */
-  --t3: #ffd21f;   /* elite  */
+  --t0: #c6241c;   /* awful  */
+  --t1: #eba49d;   /* bad    */
+  --t2: #ffffff;   /* average */
+  --t3: #a9e48f;   /* good   */
+  --t4: #2e8f1f;   /* elite  */
   --ink: #0c0c0c;
 }
-.t0 { background-color: var(--t0); background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.16) 0 3px, transparent 3px 14px); }
-.t1 { background-color: var(--t1); }
+.t0, .t1, .t2, .t3, .t4 { color: var(--ink); }
+.t0 { background-color: var(--t0); background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.22) 0 3px, transparent 3px 14px); }
+.t1 { background-color: var(--t1); background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.13) 0 3px, transparent 3px 14px); }
 .t2 { background-color: var(--t2); }
 .t3 { background-color: var(--t3); }
+.t4 { background-color: var(--t4); }
+.t0, .t4 { --ink: #fff; color: #fff; }
 
-.meter { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 0 0 0 0; }
+.meter { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
 .meter i { background: rgba(0,0,0,.16); }
 .meter i.on { background: var(--ink); }
+.t0 .meter i, .t4 .meter i { background: rgba(255,255,255,.3); }
+.t0 .meter i.on, .t4 .meter i.on { background: #fff; }
 
-.legend { display: flex; align-items: center; gap: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+.legend { display: flex; align-items: center; gap: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
 .legend-title { opacity: .6; margin-right: auto; }
 .legend-item { display: flex; align-items: center; gap: 10px; }
 .sw { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--ink); }
-.sw.t1 { background: transparent; }
+.sw.t2 { background: #fff; }
 
 /* ================= BROADCAST LIGHT ================= */
 .cb { width: 1080px; height: 1350px; background: #f1f0ea; color: var(--ink); font-family: "Barlow Condensed", sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; }

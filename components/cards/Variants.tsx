@@ -1,11 +1,11 @@
 import { TIER_NAMES } from "@/lib/baseline";
 import { fitSize, type CardData } from "./data";
 
-/** Four-segment meter: 1 filled = poor … 4 filled = elite. Shape + count, so it never relies on color alone. */
+/** Five-segment meter: 1 filled = awful … 5 filled = elite. Shape + count, so it never relies on color alone. */
 function Meter({ tier }: { tier: number }) {
   return (
     <div className="meter">
-      {[0, 1, 2, 3].map((i) => (
+      {[0, 1, 2, 3, 4].map((i) => (
         <i key={i} className={i <= tier ? "on" : ""} />
       ))}
     </div>
@@ -15,7 +15,7 @@ function Meter({ tier }: { tier: number }) {
 function Legend({ className }: { className: string }) {
   return (
     <div className={`legend ${className}`}>
-      <span className="legend-title">Vs league rotation players</span>
+      <span className="legend-title">Vs league avg</span>
       {TIER_NAMES.map((n, t) => (
         <span key={n} className="legend-item">
           <i className={`sw t${t}`} />
