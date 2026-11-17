@@ -11,7 +11,6 @@ import { StatCard } from "./StatCard";
 interface Loaded {
   player: PlayerInfo;
   games: GameEntry[];
-  baseline?: Baseline;
 }
 
 export function LineApp() {
@@ -26,6 +25,10 @@ export function LineApp() {
   const cardRef = useRef<HTMLDivElement>(null);
   const searchSeq = useRef(0);
   const lastId = useRef("");
+  const pickedName = useRef(""); // name we just filled in ourselves: never search for it
+  const [baseline, setBaseline] = useState<Baseline | undefined>();
+  const [baselineReady, setBaselineReady] = useState(false);
+  const searchCache = useRef(new Map<string, PlayerSummary[]>());
 
   const loadPlayer = useCallback(async (id: string, preferGame?: string) => {
     lastId.current = id;
@@ -33,17 +36,31 @@ export function LineApp() {
     setErr("");
     try {
       const res = await fetch(`/api/line?player=${id}`);
+      if (res.status === 503) {
+        setErr("ESPN is busy right now. Give it a minute and retry.");
+        return;
+      }
       if (!res.ok) throw new Error();
       const j: Loaded = await res.json();
       setData(j);
       const g = j.games.find((x) => x.eventId === preferGame) ?? j.games[0];
       setGameId(g?.eventId ?? "");
+      pickedName.current = j.player.name;
       setQ(j.player.name);
     } catch {
       setErr("Couldn’t load that player. Try again.");
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // league baseline (tiny, CDN-cached); cards fall back to a built-in one if this fails
+  useEffect(() => {
+    fetch("/api/baseline")
+      .then((r) => (r.ok ? r.json() : undefined))
+      .then((b) => b && setBaseline(b))
+      .catch(() => undefined)
+      .finally(() => setBaselineReady(true));
   }, []);
 
   // initial state from URL
@@ -65,15 +82,24 @@ export function LineApp() {
   // debounced search
   useEffect(() => {
     const term = q.trim();
-    if (term.length < 2 || (data && term === data.player.name)) {
+    if (term.length < 3 || term === pickedName.current || (data && term === data.player.name)) {
       setResults([]);
+      return;
+    }
+    const key = term.toLowerCase().replace(/\s+/g, " ");
+    const cached = searchCache.current.get(key);
+    if (cached) {
+      setResults(cached);
+      setHi(0);
       return;
     }
     const seq = ++searchSeq.current;
     const t = setTimeout(async () => {
       try {
         const res = await fetch(`/api/players?q=${encodeURIComponent(term)}`);
+        if (!res.ok) return;
         const j = await res.json();
+        searchCache.current.set(key, j.players ?? []);
         if (seq === searchSeq.current) {
           setResults(j.players ?? []);
           setHi(0);
@@ -81,13 +107,14 @@ export function LineApp() {
       } catch {
         /* ignore */
       }
-    }, 160);
+    }, 250);
     return () => clearTimeout(t);
   }, [q, data]);
 
   function pick(p: PlayerSummary) {
     setOpen(false);
     setResults([]);
+    pickedName.current = p.name;
     setQ(p.name);
     loadPlayer(p.id);
   }
@@ -154,10 +181,12 @@ export function LineApp() {
         {!data && !loading && !err && <div className="note">Pick a player to get their most recent game, ready to post.</div>}
         {data && !game && !loading && <div className="note">{data.player.name} hasn’t played a game this season.</div>}
 
-        {data && game && (
+        {data && game && !baselineReady && <div className="frame skeleton" aria-busy="true" style={{ aspectRatio: "1080 / 1350" }} />}
+
+        {data && game && baselineReady && (
           <>
             <CardFrame ref={cardRef} loading={loading}>
-              <StatCard player={data.player} game={game} baseline={data.baseline} />
+              <StatCard player={data.player} game={game} baseline={baseline} />
             </CardFrame>
 
             <ShareButtons

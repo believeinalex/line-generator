@@ -1,4 +1,5 @@
 import { buildBaseline, DEFAULT_BASELINE, type Baseline } from "./baseline";
+import { upstreamJson } from "./upstream";
 import type { GameEntry, PlayerInfo, PlayerSummary, StatLine } from "./types";
 
 const SEARCH = "https://site.web.api.espn.com/apis/common/v3/search";
@@ -120,42 +121,38 @@ export function parseGamelog(json: Json): GameEntry[] {
 
 /* ---------- fetchers (server only) ---------- */
 
-async function getJson(url: string, revalidate: number): Promise<Json> {
-  const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; line-generator)" },
-    next: { revalidate },
-  });
-  if (!res.ok) throw new Error(`ESPN ${res.status}`);
-  return res.json();
+/** "  LeBron   James " → "lebron james": one cache key per real query. */
+export function normalizeQuery(q: string): string {
+  return q.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 export async function searchPlayers(q: string): Promise<PlayerSummary[]> {
-  const url = `${SEARCH}?query=${encodeURIComponent(q)}&limit=8&type=player&sport=basketball&league=nba`;
-  return parseSearch(await getJson(url, 3600));
+  const url = `${SEARCH}?query=${encodeURIComponent(normalizeQuery(q))}&limit=8&type=player&sport=basketball&league=nba`;
+  return parseSearch(await upstreamJson(url, { revalidate: 3600 }));
 }
 
 export async function getPlayer(id: string): Promise<PlayerInfo> {
-  return parseAthlete(await getJson(`${ATHLETE}/${encodeURIComponent(id)}`, 3600));
+  return parseAthlete(await upstreamJson(`${ATHLETE}/${encodeURIComponent(id)}`, { revalidate: 3600 }));
 }
 
 export async function getGames(id: string): Promise<GameEntry[]> {
-  return parseGamelog(await getJson(`${ATHLETE}/${encodeURIComponent(id)}/gamelog`, 300));
+  return parseGamelog(await upstreamJson(`${ATHLETE}/${encodeURIComponent(id)}/gamelog`, { revalidate: 300 }));
 }
 
-/* League baseline: the table is big (>2MB, too large for Next's fetch cache), so memoise per server instance. */
+/*
+ * League baseline. The raw table is >2 MB (too big for Next's fetch cache), so we keep only the
+ * small computed result in memory, and /api/baseline puts it behind the CDN for hours.
+ */
 const LEADERS = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete";
 const BASELINE_TTL = 6 * 3600 * 1000;
 let memo: { at: number; value: Baseline } | null = null;
-let inflight: Promise<Baseline> | null = null;
+let baselineInflight: Promise<{ value: Baseline; fresh: boolean }> | null = null;
 
 async function fetchBaseline(): Promise<Baseline> {
   const page = (n: number) =>
-    fetch(`${LEADERS}?region=us&lang=en&contentorigin=espn&isqualified=true&page=${n}&limit=200&sort=offensive.avgPoints%3Adesc&seasontype=2`, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; line-generator)" },
-      cache: "no-store",
-    }).then((r) => {
-      if (!r.ok) throw new Error(`ESPN ${r.status}`);
-      return r.json() as Promise<Json>;
+    upstreamJson(`${LEADERS}?region=us&lang=en&contentorigin=espn&isqualified=true&page=${n}&limit=200&sort=offensive.avgPoints%3Adesc&seasontype=2`, {
+      revalidate: 0,
+      keepStale: false,
     });
   const first = await page(1);
   const pages = [first];
@@ -163,13 +160,17 @@ async function fetchBaseline(): Promise<Baseline> {
   return buildBaseline(pages);
 }
 
-export async function getBaseline(): Promise<Baseline> {
-  if (memo && Date.now() - memo.at < BASELINE_TTL) return memo.value;
-  inflight ??= fetchBaseline()
-    .then((value) => ((memo = { at: Date.now(), value }), value))
-    .catch(() => memo?.value ?? DEFAULT_BASELINE)
+/** `fresh` is false when we had to fall back to an older or built-in baseline (so callers shouldn't cache it long). */
+export async function getBaseline(): Promise<{ value: Baseline; fresh: boolean }> {
+  if (memo && Date.now() - memo.at < BASELINE_TTL) return { value: memo.value, fresh: true };
+  baselineInflight ??= fetchBaseline()
+    .then((value) => {
+      memo = { at: Date.now(), value };
+      return { value, fresh: value.pool > 0 };
+    })
+    .catch(() => ({ value: memo?.value ?? DEFAULT_BASELINE, fresh: false }))
     .finally(() => {
-      inflight = null;
+      baselineInflight = null;
     });
-  return inflight;
+  return baselineInflight;
 }
