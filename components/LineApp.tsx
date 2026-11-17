@@ -47,7 +47,7 @@ export function LineApp() {
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const v = Number(sp.get("v"));
-    if (v >= 1 && v <= 5) setVariant(v);
+    if (VARIANTS.some((x) => x.id === v)) setVariant(v);
     const p = sp.get("player");
     if (p && /^\d+$/.test(p)) loadPlayer(p, sp.get("game") ?? undefined);
   }, [loadPlayer]);
