@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Baseline } from "@/lib/baseline";
 import type { GameEntry, PlayerInfo, PlayerSummary } from "@/lib/types";
 import { isoDay, shortDate } from "@/lib/stats";
 import { CardFrame } from "./CardFrame";
@@ -10,6 +11,7 @@ import { StatCard, VARIANTS } from "./StatCard";
 interface Loaded {
   player: PlayerInfo;
   games: GameEntry[];
+  baseline?: Baseline;
 }
 
 export function LineApp() {
@@ -147,7 +149,7 @@ export function LineApp() {
         {data && game && (
           <>
             <CardFrame ref={cardRef} loading={loading}>
-              <StatCard player={data.player} game={game} variant={variant} />
+              <StatCard player={data.player} game={game} variant={variant} baseline={data.baseline} />
             </CardFrame>
 
             <ShareButtons

@@ -1,3 +1,4 @@
+import { buildBaseline, DEFAULT_BASELINE, type Baseline } from "./baseline";
 import type { GameEntry, PlayerInfo, PlayerSummary, StatLine } from "./types";
 
 const SEARCH = "https://site.web.api.espn.com/apis/common/v3/search";
@@ -139,4 +140,36 @@ export async function getPlayer(id: string): Promise<PlayerInfo> {
 
 export async function getGames(id: string): Promise<GameEntry[]> {
   return parseGamelog(await getJson(`${ATHLETE}/${encodeURIComponent(id)}/gamelog`, 300));
+}
+
+/* League baseline: the table is big (>2MB, too large for Next's fetch cache), so memoise per server instance. */
+const LEADERS = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete";
+const BASELINE_TTL = 6 * 3600 * 1000;
+let memo: { at: number; value: Baseline } | null = null;
+let inflight: Promise<Baseline> | null = null;
+
+async function fetchBaseline(): Promise<Baseline> {
+  const page = (n: number) =>
+    fetch(`${LEADERS}?region=us&lang=en&contentorigin=espn&isqualified=true&page=${n}&limit=200&sort=offensive.avgPoints%3Adesc&seasontype=2`, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; line-generator)" },
+      cache: "no-store",
+    }).then((r) => {
+      if (!r.ok) throw new Error(`ESPN ${r.status}`);
+      return r.json() as Promise<Json>;
+    });
+  const first = await page(1);
+  const pages = [first];
+  for (let n = 2; n <= Math.min(Number(first.pagination?.pages ?? 1), 4); n++) pages.push(await page(n));
+  return buildBaseline(pages);
+}
+
+export async function getBaseline(): Promise<Baseline> {
+  if (memo && Date.now() - memo.at < BASELINE_TTL) return memo.value;
+  inflight ??= fetchBaseline()
+    .then((value) => ((memo = { at: Date.now(), value }), value))
+    .catch(() => memo?.value ?? DEFAULT_BASELINE)
+    .finally(() => {
+      inflight = null;
+    });
+  return inflight;
 }

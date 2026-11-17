@@ -1,3 +1,4 @@
+import { DEFAULT_BASELINE, tierOf, zScores, type Baseline, type Tier } from "./baseline";
 import type { StatLine } from "./types";
 
 /** Percentage like ".545" (basketball style) or "—" when there were no attempts. */
@@ -19,22 +20,33 @@ export interface NineCat {
   value: string;
   /** secondary text, e.g. "8/15" */
   sub?: string;
-  /** numeric weight for "standout" detection (higher = louder) */
-  hot: boolean;
+  /** z-score vs league rotation players (positive = good; TO already inverted) */
+  z: number;
+  /** 0 poor · 1 average · 2 good · 3 elite */
+  tier: Tier;
 }
 
-/** The standard 9 fantasy categories in display order. */
-export function nineCats(s: StatLine): NineCat[] {
+/** The standard 9 fantasy categories in display order, each scored against the league baseline. */
+export function nineCats(s: StatLine, baseline: Baseline = DEFAULT_BASELINE): NineCat[] {
+  const z = zScores(s, baseline);
+  const mk = (key: NineCat["key"], label: string, value: string, sub?: string): NineCat => ({
+    key,
+    label,
+    value,
+    sub,
+    z: z[key],
+    tier: tierOf(z[key]),
+  });
   return [
-    { key: "pts", label: "PTS", value: String(s.pts), hot: s.pts >= 30 },
-    { key: "reb", label: "REB", value: String(s.reb), hot: s.reb >= 12 },
-    { key: "ast", label: "AST", value: String(s.ast), hot: s.ast >= 10 },
-    { key: "stl", label: "STL", value: String(s.stl), hot: s.stl >= 3 },
-    { key: "blk", label: "BLK", value: String(s.blk), hot: s.blk >= 3 },
-    { key: "tpm", label: "3PM", value: String(s.tpm), sub: `${s.tpm}/${s.tpa}`, hot: s.tpm >= 5 },
-    { key: "fg", label: "FG%", value: pct(s.fgm, s.fga), sub: `${s.fgm}/${s.fga}`, hot: s.fga >= 8 && s.fgm / s.fga >= 0.6 },
-    { key: "ft", label: "FT%", value: pct(s.ftm, s.fta), sub: `${s.ftm}/${s.fta}`, hot: s.fta >= 6 && s.ftm === s.fta },
-    { key: "to", label: "TO", value: String(s.to), hot: s.to >= 5 },
+    mk("pts", "PTS", String(s.pts)),
+    mk("reb", "REB", String(s.reb)),
+    mk("ast", "AST", String(s.ast)),
+    mk("stl", "STL", String(s.stl)),
+    mk("blk", "BLK", String(s.blk)),
+    mk("tpm", "3PM", String(s.tpm), `${s.tpm}/${s.tpa}`),
+    mk("fg", "FG%", pct(s.fgm, s.fga), `${s.fgm}/${s.fga}`),
+    mk("ft", "FT%", pct(s.ftm, s.fta), `${s.ftm}/${s.fta}`),
+    mk("to", "TO", String(s.to)),
   ];
 }
 

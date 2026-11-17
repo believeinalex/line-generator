@@ -1,4 +1,5 @@
 import { accentFor, inkOn } from "@/lib/color";
+import type { Baseline } from "@/lib/baseline";
 import { fantasyScore, longDate, milestone, nineCats, shortDate } from "@/lib/stats";
 import type { GameEntry, PlayerInfo } from "@/lib/types";
 
@@ -7,7 +8,7 @@ export const CARD_H = 1350;
 
 export const proxied = (url: string) => (url ? `/api/img?url=${encodeURIComponent(url)}` : "");
 
-export function cardData(player: PlayerInfo, game: GameEntry) {
+export function cardData(player: PlayerInfo, game: GameEntry, baseline?: Baseline) {
   const parts = player.name.split(" ");
   const first = player.firstName || parts[0] || "";
   const last = player.lastName || parts.slice(1).join(" ") || player.name;
@@ -31,7 +32,7 @@ export function cardData(player: PlayerInfo, game: GameEntry) {
     score: `${game.teamScore}–${game.oppScore}`,
     min: game.dnp ? "DNP" : String(game.stats.min),
     dnp: game.dnp,
-    cats: nineCats(game.stats),
+    cats: nineCats(game.stats, baseline),
     milestone: milestone(game.stats),
     fantasy: fantasyScore(game.stats),
     headshot: proxied(player.headshot),

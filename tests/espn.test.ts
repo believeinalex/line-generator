@@ -49,3 +49,31 @@ describe("stat helpers", () => {
     expect(fantasyScore(line)).toBe(15 + 8.4 + 16.5 + 3 - 2);
   });
 });
+
+import leaders from "./fixtures/leaders.json";
+import { buildBaseline, tierOf, zScores } from "@/lib/baseline";
+
+describe("league baseline & z-scores", () => {
+  const b = buildBaseline(leaders.pages);
+  it("builds a sane baseline from the real league table", () => {
+    expect(b.pool).toBeGreaterThan(100);
+    expect(b.fgPct).toBeGreaterThan(0.42);
+    expect(b.fgPct).toBeLessThan(0.55);
+    expect(b.cats.pts.mean).toBeGreaterThan(9);
+    expect(b.cats.pts.std).toBeGreaterThan(3);
+  });
+  it("rates a big line elite and a dud poor", () => {
+    const big = { min: 36, pts: 40, reb: 14, ast: 10, stl: 3, blk: 3, tpm: 6, tpa: 10, fgm: 15, fga: 22, ftm: 4, fta: 4, to: 1, pf: 2 };
+    const dud = { min: 20, pts: 2, reb: 1, ast: 0, stl: 0, blk: 0, tpm: 0, tpa: 4, fgm: 1, fga: 9, ftm: 0, fta: 2, to: 5, pf: 4 };
+    const zb = zScores(big, b), zd = zScores(dud, b);
+    expect(tierOf(zb.pts)).toBe(3);
+    expect(tierOf(zb.fg)).toBe(3);
+    expect(tierOf(zd.pts)).toBe(0);
+    expect(tierOf(zd.to)).toBe(0); // 5 turnovers is bad
+    expect(tierOf(zb.to)).toBe(2); // 1 turnover is good
+  });
+  it("doesn't call 0-for-0 free throws elite", () => {
+    const l = { min: 30, pts: 10, reb: 5, ast: 3, stl: 1, blk: 0, tpm: 1, tpa: 3, fgm: 4, fga: 9, ftm: 0, fta: 0, to: 2, pf: 1 };
+    expect(tierOf(zScores(l, b).ft)).toBe(1);
+  });
+});
