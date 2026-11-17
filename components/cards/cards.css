@@ -3,9 +3,9 @@
 .card-root img { display: block; }
 
 /*
-  Performance tiers vs league rotation players, Hashtag-style:
-  deep red / red / white / green / deep green. Color carries the tier, but so do the
-  hatch on the two red tiers, the 1-5 segment meter and (on the light card) the tier word.
+  Performance tiers vs league rotation players, Hashtag-style palette
+  (deep red / red / white / green / deep green), shown only on a small corner icon so the
+  cards keep their team colors. Chevron shape carries the meaning; color reinforces it.
 */
 .cb, .cf {
   --t0: #c6241c;   /* awful  */
@@ -15,25 +15,19 @@
   --t4: #2e8f1f;   /* elite  */
   --ink: #0c0c0c;
 }
-.t0, .t1, .t2, .t3, .t4 { color: var(--ink); }
-.t0 { background-color: var(--t0); background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.22) 0 3px, transparent 3px 14px); }
-.t1 { background-color: var(--t1); background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.13) 0 3px, transparent 3px 14px); }
-.t2 { background-color: var(--t2); }
-.t3 { background-color: var(--t3); }
-.t4 { background-color: var(--t4); }
-.t0, .t4 { --ink: #fff; color: #fff; }
-
-.meter { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-.meter i { background: rgba(0,0,0,.16); }
-.meter i.on { background: var(--ink); }
-.t0 .meter i, .t4 .meter i { background: rgba(255,255,255,.3); }
-.t0 .meter i.on, .t4 .meter i.on { background: #fff; }
+.tchip { position: absolute; top: 12px; right: 12px; width: 50px; height: 50px; display: grid; place-items: center; border: 3px solid var(--ink); color: var(--ink); }
+.tchip svg { width: 34px; height: 34px; }
+.tchip.t0 { background: var(--t0); color: #fff; }
+.tchip.t1 { background: var(--t1); }
+.tchip.t2 { background: var(--t2); }
+.tchip.t3 { background: var(--t3); }
+.tchip.t4 { background: var(--t4); color: #fff; }
+.tchip.sm { position: static; width: 32px; height: 32px; border-width: 3px; }
+.tchip.sm svg { width: 22px; height: 22px; }
 
 .legend { display: flex; align-items: center; gap: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
 .legend-title { opacity: .6; margin-right: auto; }
 .legend-item { display: flex; align-items: center; gap: 10px; }
-.sw { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--ink); }
-.sw.t2 { background: #fff; }
 
 /* ================= BROADCAST LIGHT ================= */
 .cb { width: 1080px; height: 1350px; background: #f1f0ea; color: var(--ink); font-family: "Barlow Condensed", sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; }
@@ -53,15 +47,13 @@
 .cb-tags { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 520px; }
 .cb-tags span { background: #0c0c0c; color: #fff; padding: 4px 16px; font-weight: 700; font-size: 34px; letter-spacing: .08em; }
 .cb-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); border-bottom: 3px solid #0c0c0c; }
-.cb-cell { position: relative; border-right: 3px solid #0c0c0c; border-top: 3px solid #0c0c0c; padding: 10px 24px; }
+.cb-cell { position: relative; border-right: 3px solid #0c0c0c; border-top: 3px solid #0c0c0c; padding: 12px 24px; }
 .cb-cell:nth-child(3n) { border-right: 0; }
-.cb-lab { font-weight: 800; font-size: 40px; letter-spacing: .14em; display: flex; justify-content: space-between; }
-.cb-lab em { font-style: normal; font-weight: 600; opacity: .6; letter-spacing: 0; }
-.cb-val { position: absolute; left: 22px; bottom: 30px; font-weight: 900; font-style: italic; font-size: 124px; line-height: 1; letter-spacing: -.03em; }
-.cb-tier { position: absolute; right: 24px; bottom: 34px; font-weight: 800; font-size: 34px; letter-spacing: .18em; text-transform: uppercase; opacity: .75; }
-.cb-cell .meter { left: 0; right: 0; }
+.cb-lab { font-weight: 800; font-size: 40px; letter-spacing: .14em; }
+.cb-sub { position: absolute; right: 24px; bottom: 40px; font-weight: 600; font-size: 38px; opacity: .6; }
+.cb-val { position: absolute; left: 22px; bottom: 22px; font-weight: 900; font-style: italic; font-size: 124px; line-height: 1; letter-spacing: -.03em; }
 .cb-legend { flex: none; height: 64px; padding: 0 44px; font-size: 26px; background: #0c0c0c; color: #fff; }
-.cb-legend .sw { border-color: #fff; }
+.cb-legend .tchip { border-color: #fff; }
 
 /* ================= FLEER ================= */
 .cf { width: 1080px; height: 1350px; background: #e8e4da; padding: 44px; position: relative; overflow: hidden; font-family: "Barlow Condensed", sans-serif; color: var(--ink); }
@@ -77,11 +69,13 @@
 .cf-table { flex: 1; display: grid; grid-template-rows: 1fr 1fr; border: 5px solid #121212; }
 .cf-tr { display: grid; grid-template-columns: repeat(5, 1fr); }
 .cf-tr + .cf-tr { border-top: 5px solid #121212; }
-.cf-td { position: relative; padding: 8px 6px 22px; text-align: center; border-left: 3px solid #121212; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.cf-td { position: relative; padding: 8px 6px; text-align: center; border-left: 3px solid #121212; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
 .cf-td:first-child { border-left: 0; }
 .cf-td.fp { background: #121212; color: #fff; }
+.cf-td .tchip { top: 8px; right: 8px; width: 42px; height: 42px; }
+.cf-td .tchip svg { width: 28px; height: 28px; }
 .cf-l { font-weight: 800; font-size: 34px; letter-spacing: .14em; }
 .cf-l em { display: block; font-style: normal; font-weight: 600; font-size: 26px; letter-spacing: 0; opacity: .65; }
-.cf-v { font-weight: 900; font-style: italic; font-size: 92px; line-height: 1; letter-spacing: -.02em; }
+.cf-v { font-weight: 900; font-style: italic; font-size: 96px; line-height: 1; letter-spacing: -.02em; }
 .cf-legend { flex: none; height: 52px; margin-top: 14px; padding: 0 6px; font-size: 22px; }
-.cf-legend .sw { width: 24px; height: 24px; }
+.cf-legend .tchip.sm { width: 28px; height: 28px; }

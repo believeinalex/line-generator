@@ -1,14 +1,18 @@
 import { TIER_NAMES } from "@/lib/baseline";
 import { fitSize, type CardData } from "./data";
 
-/** Five-segment meter: 1 filled = awful … 5 filled = elite. Shape + count, so it never relies on color alone. */
-function Meter({ tier }: { tier: number }) {
+/** Corner tier icon: chevrons carry the meaning (▲▲ elite … ▼▼ awful), color reinforces it. */
+function Chip({ tier, small }: { tier: number; small?: boolean }) {
+  const up = tier >= 3;
+  const n = tier === 2 ? 0 : tier === 1 || tier === 3 ? 1 : 2;
+  const path = (y: number) => (up ? `M5 ${y + 6}l7-7 7 7` : `M5 ${y}l7 7 7-7`);
+  const ys = n === 2 ? [4, 11] : [up ? 9 : 7];
   return (
-    <div className="meter">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <i key={i} className={i <= tier ? "on" : ""} />
-      ))}
-    </div>
+    <span className={`tchip t${tier}${small ? " sm" : ""}`} aria-label={TIER_NAMES[tier]}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.6" strokeLinecap="square" strokeLinejoin="miter">
+        {n === 0 ? <path d="M5 12h14" /> : ys.map((y) => <path key={y} d={path(y)} />)}
+      </svg>
+    </span>
   );
 }
 
@@ -18,7 +22,7 @@ function Legend({ className }: { className: string }) {
       <span className="legend-title">Vs league avg</span>
       {TIER_NAMES.map((n, t) => (
         <span key={n} className="legend-item">
-          <i className={`sw t${t}`} />
+          <Chip tier={t} small />
           {n}
         </span>
       ))}
@@ -61,14 +65,11 @@ export function BroadcastLight({ d }: { d: CardData }) {
       </div>
       <div className="cb-grid">
         {d.cats.map((c) => (
-          <div key={c.key} className={`cb-cell t${c.tier}`}>
-            <div className="cb-lab">
-              {c.label}
-              {c.sub && <em>{c.sub}</em>}
-            </div>
+          <div key={c.key} className="cb-cell">
+            <div className="cb-lab">{c.label}</div>
+            <Chip tier={c.tier} />
             <div className="cb-val">{c.value}</div>
-            <div className="cb-tier">{TIER_NAMES[c.tier]}</div>
-            <Meter tier={c.tier} />
+            {c.sub && <div className="cb-sub">{c.sub}</div>}
           </div>
         ))}
       </div>
@@ -83,7 +84,7 @@ export function Fleer({ d }: { d: CardData }) {
   const row1 = ["pts", "reb", "ast", "stl", "blk"].map((k) => by[k]);
   const row2 = ["tpm", "fg", "ft", "to"].map((k) => by[k]);
   const cell = (c: (typeof row1)[number]) => (
-    <div key={c.key} className={`cf-td t${c.tier}`}>
+    <div key={c.key} className="cf-td">
       <div className="cf-l">
         {c.label}
         <em>{c.sub ?? " "}</em>
@@ -91,7 +92,7 @@ export function Fleer({ d }: { d: CardData }) {
       <div className="cf-v" style={c.key === "fg" || c.key === "ft" ? { fontSize: 72 } : undefined}>
         {c.value}
       </div>
-      <Meter tier={c.tier} />
+      <Chip tier={c.tier} />
     </div>
   );
   return (
