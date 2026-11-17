@@ -6,6 +6,7 @@ import "@fontsource/barlow-condensed/900-italic.css";
 import "@fontsource-variable/archivo";
 import "./globals.css";
 import "@/components/cards/cards.css";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Line — share an NBA stat line",
@@ -18,7 +19,10 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
